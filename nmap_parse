@@ -1,0 +1,17 @@
+#parse thru nmap grepable output and provide just the open ports
+
+grep "open" nmap_output.txt | \
+awk '
+{
+    ip = $2
+    gsub(/ \(.*\)/, "", ip)
+    printf "%s", ip
+    for(i=1; i<=NF; i++) {
+        if($i ~ /\/open\//) {
+            port = $i
+            gsub(/\/.*/, "", port)
+            printf ",%s", port
+        }
+    }
+    print ""
+}' | sort -V
